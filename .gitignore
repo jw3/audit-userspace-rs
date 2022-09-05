@@ -1,5 +1,6 @@
 .idea
-/target
+.local
+target
 Cargo.lock
 
 **/src/bindings.rs

@@ -4,7 +4,7 @@ use std::error::Error;
 use std::time::SystemTime;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let log = Log::new();
+    let log = Log::parse();
     let boot = log.last().expect("no boot entries");
 
     let now = SystemTime::now();
