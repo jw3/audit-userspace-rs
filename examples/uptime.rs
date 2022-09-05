@@ -1,14 +1,18 @@
-use audit_userspace_rs::Log;
+use audit_userspace_rs::auparse::rtype::Type::SystemBoot;
+use audit_userspace_rs::auparse::Log;
 use chrono::{DateTime, Local};
 use std::error::Error;
 use std::time::SystemTime;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let log = Log::new();
-    let boot = log.last().expect("no boot entries");
+    let boot = log
+        .filter(|e| e.etype == SystemBoot)
+        .last()
+        .expect("no boot entries");
 
     let now = SystemTime::now();
-    let uptime = now.duration_since(boot.t)?;
+    let uptime = now.duration_since(boot.time)?;
 
     let datetime: DateTime<Local> = now.into();
     let duration = chrono::Duration::from_std(uptime)?;
