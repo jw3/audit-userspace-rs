@@ -9,6 +9,7 @@ chrono = "0.4"
 
 [dependencies]
 auparse-sys = { path = "auparse-sys" }
+thiserror = "1"
 
 [workspace]
 members = [

@@ -1,3 +1,5 @@
+use crate::auparse::error::Error;
+use crate::auparse::error::Error::NativeInitFail;
 use crate::auparse::rtype::Type;
 use auparse_sys::*;
 use std::ptr;
@@ -40,8 +42,12 @@ impl Drop for Log {
 }
 
 impl Log {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, Error> {
         let au = unsafe { auparse_init(ausource_t_AUSOURCE_LOGS, ptr::null()) };
-        Self { au }
+        if au.is_null() {
+            Err(NativeInitFail)
+        } else {
+            Ok(Self { au })
+        }
     }
 }
