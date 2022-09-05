@@ -10,3 +10,7 @@ Rust bindings for the [Linux Auditing Framework](https://github.com/linux-audit/
 # Requires
 - libaudit dev package
 - 
+
+### License
+
+MPL v2
