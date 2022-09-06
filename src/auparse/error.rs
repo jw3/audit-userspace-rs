@@ -4,12 +4,15 @@ use thiserror::Error;
 /// An error that can occur
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Failed to init auparse")]
-    NativeInitFail,
+    #[error("General failure: {0}")]
+    GeneralFail(String),
 
     #[error("{0}")]
     DurationError(#[from] SystemTimeError),
 
-    #[error("General failure: {0}")]
-    GeneralFail(String),
+    #[error("Failed to init auparse")]
+    NativeInitFail,
+
+    #[error("Failed to get field {0}")]
+    GetAuditFieldFail(String),
 }
