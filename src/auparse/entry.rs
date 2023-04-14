@@ -1,7 +1,6 @@
 use crate::auparse::rtype::Type;
 use crate::auparse::util::auparse_get_int;
 use auparse_sys::{auparse_get_time, auparse_get_type, auparse_next_event, auparse_state_t};
-use std::ptr::NonNull;
 use std::time::{Duration, SystemTime};
 
 #[derive(Debug)]

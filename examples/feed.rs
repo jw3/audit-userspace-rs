@@ -1,9 +1,7 @@
-use std::env::args;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::thread;
-use std::time::Duration;
 
 use clap::Parser;
 use crossbeam_channel::internal::SelectHandle;
@@ -20,8 +18,10 @@ struct Opts {
 fn main() -> Result<(), Box<dyn Error>> {
     let opts: Opts = Opts::parse();
 
-    let (_done, h, stream) = Feed::new().stream()?;
+    let stream = Feed::new().stream()?;
     let rx = stream.rx.clone();
+
+    // entry rx thread displays parsed entries
     let h = thread::spawn(move || {
         let mut count = 0;
         for e in &rx {
@@ -36,16 +36,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("output: {count}");
     });
 
+    // read entries from a file, push them into the stream
     let f = File::open(opts.log).expect("failed to open file");
     let buff = BufReader::new(f);
-
     for line in buff.lines() {
         if let Some(e) = stream.tx.send(Input::Raw(format!("{}\n", line?))).err() {
             println!("error: {e} {}", stream.tx.is_ready());
         }
     }
+
+    // signal the input completed
     stream.tx.send(Input::Done)?;
-    h.join();
+
+    // wait for the rx thread to close
+    h.join().expect("join rx thread");
 
     Ok(())
 }
