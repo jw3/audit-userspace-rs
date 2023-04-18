@@ -1,13 +1,13 @@
 use audit_userspace_rs::auparse::error::Error;
 use audit_userspace_rs::auparse::error::Error::GeneralFail;
 use audit_userspace_rs::auparse::rtype::Type::SystemBoot;
-use audit_userspace_rs::auparse::Log;
+use audit_userspace_rs::auparse::Logs;
 use chrono::{DateTime, Local};
 use std::time::SystemTime;
 
 /// Example that behaves like the ubiquitous uptime command
 fn main() -> Result<(), Error> {
-    let log = Log::new()?;
+    let log = Logs::new()?;
 
     // filter the log to boots and take the last one
     let then = log

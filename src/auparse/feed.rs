@@ -84,7 +84,6 @@ impl Feed {
                             }
                         }
                         Input::Done => {
-                            println!("input done");
                             break 'outer;
                         }
                     }
@@ -95,8 +94,6 @@ impl Feed {
                 auparse_feed_age_events(feed.au.as_ptr());
                 auparse_flush_feed(feed.au.as_ptr());
             }
-
-            println!("input handling thread is closed");
         });
 
         Ok(stream)
@@ -107,13 +104,12 @@ impl Feed {
 unsafe extern "C" fn callback(
     au: *mut auparse_state_t,
     cb_event_type: auparse_cb_event_t,
-    user_data: *mut ::std::os::raw::c_void,
+    user_data: *mut c_void,
 ) {
     if !user_data.is_null() && cb_event_type == auparse_cb_event_t_AUPARSE_CB_EVENT_READY {
         // let x = audit_msg_type_to_name(auparse_get_type(au));
         // let name = CStr::from_ptr(x).to_str().unwrap();
         // println!("{name}");
-
         let stream = user_data as *mut Stream;
         if let Some(e) = Entry::next(au) {
             (*stream).count += 1;
@@ -122,7 +118,7 @@ unsafe extern "C" fn callback(
     }
 }
 
-extern "C" fn cleanup(user_data: *mut ::std::os::raw::c_void) {
+extern "C" fn cleanup(user_data: *mut c_void) {
     unsafe {
         let stream = Box::from_raw(user_data as *mut Stream);
         stream.e_tx.send(Output::Done);

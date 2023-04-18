@@ -14,10 +14,13 @@ pub struct Entry {
 
 impl Entry {
     pub(crate) unsafe fn next(ptr: *mut auparse_state_t) -> Option<Entry> {
-        if auparse_next_event(ptr) > 0 {
-            return Some(Entry::parse(ptr));
+        match auparse_next_event(ptr) {
+            1 => Some(Entry::parse(ptr)),
+            x => {
+                println!("auparse_next_event: {x}");
+                None
+            }
         }
-        None
     }
     pub(crate) unsafe fn parse(ptr: *mut auparse_state_t) -> Entry {
         let tid = auparse_get_type(ptr) as u32;
