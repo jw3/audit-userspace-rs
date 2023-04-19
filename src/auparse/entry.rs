@@ -16,10 +16,7 @@ impl Entry {
     pub(crate) unsafe fn next(ptr: *mut auparse_state_t) -> Option<Entry> {
         match auparse_next_event(ptr) {
             1 => Some(Entry::parse(ptr)),
-            x => {
-                println!("auparse_next_event: {x}");
-                None
-            }
+            _ => None,
         }
     }
     pub(crate) unsafe fn parse(ptr: *mut auparse_state_t) -> Entry {

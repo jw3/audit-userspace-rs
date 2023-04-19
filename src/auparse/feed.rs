@@ -89,11 +89,12 @@ impl Feed {
                     }
                 }
             }
-            println!("entries: {count}");
+            println!("received: {count}");
             unsafe {
                 auparse_feed_age_events(feed.au.as_ptr());
                 auparse_flush_feed(feed.au.as_ptr());
             }
+            println!("stream closed");
         });
 
         Ok(stream)
@@ -122,6 +123,6 @@ extern "C" fn cleanup(user_data: *mut c_void) {
     unsafe {
         let stream = Box::from_raw(user_data as *mut Stream);
         stream.e_tx.send(Output::Done);
-        println!("valid: {}", stream.count);
+        println!("stream.count: {}", stream.count);
     }
 }

@@ -33,23 +33,23 @@ use audit_userspace_rs::auparse::Feed;
 fn main() -> Result<(), Box<dyn Error>> {
     log4rs::init_config(setup_logging()?)?;
 
-    // sigint stops the application
-    let stop = Arc::new(AtomicBool::new(false));
-    signal_hook::flag::register(SIGINT, Arc::clone(&stop)).unwrap();
-
-    // sighup reloads the configuration file
-    let hup = Arc::new(AtomicBool::new(false));
-    signal_hook::flag::register(SIGHUP, Arc::clone(&hup)).unwrap();
-
     let mut _config = load_config()?;
 
     let stream = Feed::new().stream()?;
     let rx = stream.rx.clone();
 
+    const READ: Token = Token(0);
+
     let mut events = Events::with_capacity(128);
     let mut poll = Poll::new()?;
     poll.registry()
-        .register(&mut SourceFd(&0), Token(0), Interest::READABLE)?;
+        .register(&mut SourceFd(&0), READ, Interest::READABLE)?;
+
+    let stop = Arc::new(AtomicBool::new(false));
+    signal_hook::flag::register(SIGINT, Arc::clone(&stop)).unwrap();
+
+    let hup = Arc::new(AtomicBool::new(false));
+    signal_hook::flag::register(SIGHUP, Arc::clone(&hup)).unwrap();
 
     // consume parsed entries, logging them to disk
     let consumer = thread::spawn(move || {
@@ -64,14 +64,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     // stdin reading buffer
     let mut buff = [0; 1024];
 
-    //let mut fd0: File = unsafe { FromRawFd::from_raw_fd(0) };
-
     // main input parsing loop
     loop {
-        poll.poll(&mut events, Some(Duration::from_secs(1)))?;
+        if let Err(e) = poll.poll(&mut events, Some(Duration::from_secs(1))) {
+            if e.kind() == std::io::ErrorKind::Interrupted {
+                continue;
+            } else {
+                panic!("Poll error: {}", e);
+            }
+        }
 
         if stop.load(Ordering::Relaxed) {
-            println!("==================== done ======================");
             stream.tx.send(Input::Done).expect("stream.tx.send Done");
             break;
         }
@@ -80,17 +83,21 @@ fn main() -> Result<(), Box<dyn Error>> {
             _config = load_config()?;
         }
 
-        for _ in events.iter() {
-            while stdin().read(&mut buff)? > 0 {
-                let string = String::from_utf8(buff.to_vec()).unwrap();
-                if let Some(e) = stream.tx.send(Input::Raw(format!("{string}\n"))).err() {
-                    error!("stream.tx.send: {e}");
+        for e in events.iter() {
+            match e.token() {
+                READ => {
+                    while stdin().read(&mut buff)? > 0 {
+                        let string = String::from_utf8(buff.to_vec()).unwrap();
+                        if let Some(e) = stream.tx.send(Input::Raw(format!("{string}\n"))).err() {
+                            error!("stream.tx.send: {e}");
+                        }
+                    }
                 }
+                _ => println!("unknown token: {:?}", e),
             }
         }
     }
-
-    println!("Done");
+    stream.tx.send(Input::Done).expect("send Input::Done");
     consumer.join().expect("joining consumer");
 
     Ok(())
