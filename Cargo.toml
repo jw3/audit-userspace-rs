@@ -6,10 +6,17 @@ edition = "2021"
 
 [dev-dependencies]
 chrono = "0.4"
+signal-hook = "0.3"
+mio = { version = "0.8", features = ["os-ext"] }
+clap = { version = "4", features = ["derive"] }
+env_logger = "0.10"
+log4rs = "1.2"
 
 [dependencies]
-auparse-sys = { path = "auparse-sys" }
+log = "0.4"
 thiserror = "1"
+crossbeam-channel = "0.5"
+auparse-sys = { path = "auparse-sys" }
 
 [workspace]
 members = [

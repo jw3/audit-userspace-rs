@@ -1,5 +1,9 @@
+pub mod entry;
 pub mod error;
-pub mod log;
+pub mod feed;
+pub mod logs;
 pub mod rtype;
+pub(crate) mod util;
 
-pub use log::Log;
+pub use feed::Feed;
+pub use logs::Logs;

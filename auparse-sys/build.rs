@@ -1,6 +1,7 @@
 extern crate bindgen;
 
 fn main() {
+    println!("cargo:rustc-link-lib=audit");
     println!("cargo:rustc-link-lib=auparse");
     println!("cargo:rerun-if-changed=wrapper.h");
 
