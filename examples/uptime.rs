@@ -1,6 +1,6 @@
 use audit_userspace_rs::auparse::error::Error;
 use audit_userspace_rs::auparse::error::Error::GeneralFail;
-use audit_userspace_rs::auparse::rtype::Type::SystemBoot;
+use audit_userspace_rs::auparse::types::Type::SystemBoot;
 use audit_userspace_rs::auparse::Logs;
 use chrono::{DateTime, Local};
 use std::time::SystemTime;
